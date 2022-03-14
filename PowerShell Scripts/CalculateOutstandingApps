@@ -1,0 +1,29 @@
+$apps = New-MSReadinessTier -Module Applications
+
+IF($ScriptArgs.Module -eq "Devices" ){$AllOutstanding = Get-MSDeviceDataminingReport -all -ReadinessTiers @($apps)}
+IF($ScriptArgs.Module -eq "UserMigrations" ){$AllOutstanding = Get-MSUserMigrationDataminingReport -all -ReadinessTiers @($apps)}
+
+$i = 0
+$Updates = @()
+
+IF($ScriptArgs.Module -eq "Devices" ){
+        Foreach($Outstanding in $AllOutstanding.data){
+            $ThisRecord = @{
+            Id = $Outstanding.Devices_DeviceId
+            CustomInt1 = $Outstanding.Applications_RemainingCount
+            }
+            $Updates += $ThisRecord
+        }
+    }
+
+IF($ScriptArgs.Module -eq "UserMigrations" ){
+        Foreach($Outstanding in $AllOutstanding.data){
+            $ThisRecord = @{
+            Id = $Outstanding.UserMigrations_MigrationId
+            CustomInt1 = $Outstanding.Applications_RemainingCount
+            }
+            $Updates += $ThisRecord
+        }
+    }
+
+Update-MSModuleItems -Module $ScriptArgs.Module -Updates $updates -BatchSize 1000
